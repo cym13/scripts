@@ -1,0 +1,4 @@
+#!/bin/bash
+
+echo "$@" | text2wave | play > /dev/null 2>&1
+#echo "$@" | text2wave | aplay > /dev/null 2>&1

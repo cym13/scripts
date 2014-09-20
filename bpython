@@ -1,0 +1,28 @@
+#!/usr/bin/bpython --interactive
+
+# From http://effbot.org/librarybook/builtin.htm
+class LazyImport:
+    def __init__(self, module_name):
+        self.module_name = module_name
+        self.module = None
+    def __getattr__(self, name):
+        if self.module is None:
+            self.module = __import__(self.module_name)
+        return getattr(self.module, name)
+
+re       = LazyImport("re")
+math     = LazyImport("math")
+time     = LazyImport("time")
+requests = LazyImport("requests")
+
+import os
+import sys
+from sh import cd, ls
+
+def sh(cmd):
+    """
+    Runs `cmd' in the shell
+    """
+    return ''.join(os.popen(cmd))
+
+print("Imports: os, sys | re, math, time, requests")

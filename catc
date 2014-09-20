@@ -1,0 +1,16 @@
+#!/bin/sh
+
+theme=freya
+(highlight -O xterm256 -s "$theme" "$@" 2>/dev/null || cat "$@") | nl -ba
+
+#baycomb
+#bluegreen
+#candy
+#clarity
+#darkbone
+#edit-vim-dark
+#ekvoli
+#freya
+#moria
+#solarized-dark
+

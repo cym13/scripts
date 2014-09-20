@@ -1,0 +1,6 @@
+#!/bin/bash
+
+if [ -n "$(xmms2 toggle | grep error)" ] ; then
+    pkill xmms2d
+    oo
+fi

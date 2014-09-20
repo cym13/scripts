@@ -1,0 +1,8 @@
+#!/bin/sh
+
+pattern="\.\(mp4\|flv\|mp3\|avi\|ogg\|ogv\|ogm\|pdf\)"
+
+while [ $# -ne 0 ] ; do
+    curl -s "$1" | tr "\"'" '\n\n' | grep -i "$pattern"
+    shift
+done

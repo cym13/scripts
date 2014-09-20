@@ -1,0 +1,4 @@
+#!/bin/bash
+
+sudo echo
+sudo `which sshd` -d -f $HOME/.ssh/usermode_sshd_config

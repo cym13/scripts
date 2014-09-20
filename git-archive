@@ -1,0 +1,8 @@
+#!/bin/bash
+
+set -e
+
+cd "./$(git rev-parse --show-cdup)"
+NAME="../$(basename "$PWD")-$(git describe --always).tgz"
+exec git archive --output="$NAME" --format=tgz HEAD
+

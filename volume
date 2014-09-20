@@ -1,0 +1,3 @@
+#!/bin/bash
+
+xmms2 server volume "$1 "

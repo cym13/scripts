@@ -1,0 +1,3 @@
+#!/bin/sh
+
+mplayer -cache 200 -really-quiet $(youtube-dl -g --max-quality mp4 "$@" )     

@@ -1,0 +1,284 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# Copyright 2012 Cédric Picard
+#
+# LICENSE
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+# END_OF_LICENSE
+#
+
+import xmmsclient
+import urllib
+import select
+import getopt
+
+from sys import argv
+from itertools import chain
+
+class Xmms2():
+    def __init__(self):
+        self._xmms = xmmsclient.XMMS()
+
+        try:
+            self._xmms.connect()
+            select.select([self._xmms.get_fd()], [self._xmms.get_fd()], [], 0)
+        except IOError:
+            print "No xmms2 server found"
+            raise SystemExit
+
+        # Retrieve the playlist's ids
+        result = self._xmms.playlist_list_entries()
+        result.wait()
+        self.playlist = result.value()
+
+    # Well... I don't really like this four ones. That's not DRY at all.
+    def get_id(self):
+        """
+        Get current track's id
+        """
+        result = self._xmms.playback_current_id()
+        result.wait()
+        return result.value()
+
+    def get_info(self, id):
+        """
+        Get track's infos
+        """
+        result = self._xmms.medialib_get_info(id)
+        result.wait()
+        return result.value()
+
+    def get_pos(self):
+        """
+        Get current track's position in the playlist
+        """
+        result = self._xmms.playlist_current_pos()
+        result.wait()
+        info = result.value()['position']
+        return info
+
+    def get_playtime(self):
+        """
+        Get current position in track
+        """
+        result = self._xmms.playback_playtime()
+        result.wait()
+        return result.value()
+
+    def status(self):
+        """
+        Return the current track's playtime
+        """
+        result = self._xmms.playback_status()
+        result.wait()
+        result = result.value()
+
+        # Change status for humans
+        if result == 0:
+            return 'Stopped'
+        elif result == 1:
+            return 'Playing'
+        elif result == 2:
+            return 'Paused'
+        else:
+            pass
+
+    def get_infos(self, to_get):
+        """
+        Retrieve infos asked in the iterable to_get from the xmms2 deamon
+        and fix utf-8 problems with the url
+        """
+
+        _infodic = self.get_info(self.get_id())
+
+        _result_dic = {}
+        for key in to_get:
+            try:
+                if key == 'url':
+                    _result_dic['url'] = urllib.unquote_plus(
+                            str(_infodic['url'])).decode('utf8')
+                elif key == 'status':
+                    _result_dic['status'] = self.status()
+                else:
+                    _result_dic[key] = (_infodic[key])
+            except:
+                _result_dic[key] = ('Unknown')
+        return _result_dic
+
+    def display_progressbar(self, _duration):
+        """
+        Display a progress bar showing the current position in the track
+        """
+        _length = 30
+        _time_format = (r"%-" + str(_length / 2) + r"s%" +
+                        str(_length / 2 - 1) + r"s")
+
+        playtime = self.get_playtime()
+
+        bar = ['[']
+        for i in range(_length - 2):
+            bar.append('-')
+        bar.append(']')
+
+        try:
+            for i in range(playtime * (_length - 2) / _duration):
+                bar[i + 1] = '#'
+        # If no duration is found, _duration equals 'None' so:
+        except TypeError:
+            pass
+
+        print(''.join(bar))
+        print(_time_format % (parse_duration(playtime),
+            parse_duration(_duration)))
+        print
+
+    def display_previous(self, _nbr_previous):
+        """
+        Display the title, the author and the album title of 'nbr_previous'
+        previous tracks
+        """
+        _curid = self.get_id()
+        _curpos = self.get_pos()
+        _nbr_previous = min(_nbr_previous, _curpos)
+        previous_ids = []
+
+        for index in range(_nbr_previous):
+            previous_ids.append(self.playlist[_curpos - index - 1])
+
+        previous_ids.reverse()
+
+        self.quick_display(previous_ids)
+
+    def display_next(self, _nbr_next):
+        """
+        Display the title, the author and the album title of 'nbr_next'
+        next tracks
+        """
+        _curid = self.get_id()
+        _curpos = self.get_pos()
+        _nbr_next = min(_nbr_next, len(self.playlist) - _curpos - 1)
+        next_ids = []
+
+        for index in range(_nbr_next):
+            next_ids.append(self.playlist[_curpos - index + 1])
+
+        self.quick_display(next_ids)
+
+    def quick_display(self, infos_list):
+        """
+        Display artist, album and title
+        Used mainly by display_previous and display_next
+        """
+        for track in infos_list:
+            _track_infos = self.get_info(track)
+            try:
+                print _track_infos['artist'] + ' : ' + _track_infos['title']
+                print 'in: ' + _track_infos['album']
+            except:
+                print urllib.unquote_plus(str(
+                    _track_infos['url'])).decode('utf8')
+            print
+
+
+def parse_duration(value):
+    """
+    Transform milliseconds duration into minutes:seconds
+    """
+    try:
+        duration = int(value)
+        duration = duration / 1000
+        minutes = duration / 60
+        seconds = duration - 60 * minutes
+        return "% 2d:%02d" % (minutes, seconds)
+    except:
+        pass
+
+
+def main():
+    """
+    Main loop
+    """
+
+    # List of wanted infos
+    # The required ones will be displayed at any time
+    required = ['status', 'title', 'artist', 'album', 'duration']
+    optional = ['genre', 'track', 'disc', 'rating', 'date', 'url']
+
+    # Adjust the space between the infos and their legend
+    width = 15
+
+    # By default, do not display any previous or next track info
+    nbr_next = 0
+    nbr_previous = 0
+
+    # Get the options
+    try:
+        opts, args = getopt.getopt(argv[1:], 'p:n:h')
+    except getopt.GetoptError as (errno, err):
+        print errno
+        raise SystemExit
+
+    if len(args) != 0:
+        print "Wrong number of arguments: 0 expected, given " + str(len(args))
+        raise SystemExit
+
+    for arg in opts:
+        try:
+            if arg[0] == '-n':
+                nbr_next = int(arg[1])
+            elif arg[0] == '-p':
+                nbr_previous = int(arg[1])
+
+        except ValueError:
+            print "Wrong argument: " + arg[1]
+            raise SystemExit
+
+    # Get the main infos
+    # `chain' comes from itertools
+    xmms2 = Xmms2()
+    infodic = xmms2.get_infos(chain(required, optional))
+
+    duration = infodic['duration']
+    del(required[-1])
+
+    # Display infos about the previous tracks
+    xmms2.display_previous(nbr_previous)
+
+    # Print current track's infos to stdout
+    for infotype in required:
+        print(infotype + ':' + ' ' * (width - len(infotype))
+               + unicode(infodic[infotype]))
+
+    # Hide the optional tags when not found
+    for infotype in optional:
+        if infotype == 'url':
+            if infodic['title'] == 'Unknown':
+                print(u'url:' + ' ' * (width - 3) + infodic['url'])
+        elif infodic[infotype] != 'Unknown':
+            print(infotype + ':' + ' ' * (width - len(infotype))
+                   + unicode(infodic[infotype]))
+
+    playlist_pos = xmms2.get_pos()
+    print('position:' + ' ' * (width - 8) + str(int(playlist_pos) + 1)
+            + '/' + str(len(xmms2.playlist)))
+
+    xmms2.display_progressbar(duration)
+
+    # Display infos about the following tracks
+    xmms2.display_next(nbr_next)
+
+
+if __name__ == '__main__':
+    main()

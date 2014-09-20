@@ -1,0 +1,131 @@
+#!/usr/bin/env python
+
+
+"""
+CLI timer for the Rubik's Cube
+
+Usage: cubetimer.py [-hbs] [-p TIME] [-f FILE]
+       cubetimer.py [-hs]  [-a FILE]
+
+Options:
+  -h, --help    print this help and exit
+  -a FILE       return the average time on 5 on in competition
+  -b            use bell
+  -f FILE       store the time in FILE
+  -p TIME       preview time (seconds)
+                default is 15
+  -s            print a random shuffle sequence
+"""
+
+
+import os
+import time
+import random
+from docopt import docopt
+
+
+# This one could be improved but it works
+def shuffle(nbr_mov=25):
+    """
+    Generate a random sequence to shuffle the cube
+    """
+    moves = ('U', 'F', 'B', 'L', 'R', 'D')
+    modif = ('', '', '', '2', '-')
+    rnd = random.Random()
+
+    shuffle = []
+    move = 7
+    i = 0
+    while i < nbr_mov:
+        last_move = move
+        move = rnd.randint(0, len(moves) - 1)
+        if move != last_move:
+            shuffle.append(moves[move])
+            mod_char = str(modif[rnd.randint(0, len(modif) - 1)])
+            shuffle[-1] = shuffle[-1] + mod_char
+        else:
+            i -= 1
+
+        i += 1
+
+    return ' '.join(shuffle)
+
+
+def bell():
+    """
+    Audible bell
+    """
+    print("\a")
+    os.popen('RingBell')
+
+
+def preview(preview_time=15):
+    """
+    Wait preview_time
+    """
+    time.sleep(int(preview_time))
+    if arguments['-b']:
+        bell()
+
+
+def store_to_file(file_path, time):
+    """
+    Write 'time' at the end of 'file_path'
+    """
+    store_file = open(file_path, 'ab')
+    print >>store_file, str(time)
+    store_file.close
+
+
+def timer():
+    """
+    Return a string corresponding to the time between the call of the
+    function and the time when the RETURN key is pressed
+    """
+    time1 = time.time()
+    raw_input()
+    return str(time.time() - time1)[:-7]
+
+
+def average(file_path):
+    """
+    Compute the average time as in competition, taking the 5 last times from
+    'file_path', removing the best, the worst and returning the average of the
+    3 remaining.
+
+    Should work even if there is only one time but it's not that interesting.
+    """
+    store_file = open(file_path, 'rb')
+    datas = store_file.read()
+    five_last = datas.splitlines()[-5:]
+    five_last.sort()
+
+    result = 0
+    for each in five_last[1:-1]:
+        result = result + float(each)
+    return result / (len(five_last) - 2)
+
+
+if __name__ == '__main__':
+    arguments = docopt(__doc__)
+
+    if arguments['-a']:
+        print str(average(arguments['-a']))
+        quit()
+
+    if arguments['-s']:
+        print shuffle()
+        quit()
+
+    print 'Start...'
+    if arguments['-p']:
+        preview(arguments['-p'])
+    print 'NOW !'
+
+    try:
+        Time = timer()
+        if arguments['-f']:
+            store_to_file(arguments['-f'], Time)
+        print Time
+    except KeyboardInterrupt:
+        raise SystemExit

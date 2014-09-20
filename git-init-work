@@ -1,0 +1,20 @@
+#!/bin/bash
+
+set -e # exits as soon as there is an error
+
+NAME="$1"
+
+if [ -z "$NAME" ]; then
+    echo "Put a project name as argument." >&2
+    exit 1
+fi
+
+cd "$HOME/work"
+ssh shell -- git init --bare work/$NAME.git
+git clone shell:work/$NAME.git
+cd "$HOME/work/$NAME"
+echo "README of project $NAME" >> README
+git add README
+git commit -m 'First commit, add README'
+git push --all
+

@@ -1,0 +1,8 @@
+#!/bin/sh
+
+for i in *; do
+    if [ ! -e $i/.git ]; then continue; fi
+    echo ================== $i ==================
+    (cd "$i" && git "$@")
+done
+

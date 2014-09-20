@@ -1,0 +1,2 @@
+#!/bin/sh
+exec tf aardmud.org 23

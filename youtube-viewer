@@ -1,0 +1,3 @@
+#!/bin/sh
+
+exec /usr/bin/youtube-viewer --video-player=mpv -C --resolution=720 "$@"

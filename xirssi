@@ -1,0 +1,7 @@
+#!/bin/bash
+
+#sleep 0.2
+#exec xterm -e tmux new 'irssi'
+
+sleep 0.2
+exec xterm -e screen -c '.screenrc.blk' 'irssi'

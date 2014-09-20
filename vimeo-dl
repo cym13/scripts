@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# Usage: vimeo-dl url
+
+wget "$(curl -s "http://player.vimeo.com/v2/video/${1/*\/}" | tr \" "\n" | \
+    grep mp4 | head -1)" -O "${1/*\/}.mp4"
+

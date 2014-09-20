@@ -1,0 +1,8 @@
+#!/bin/sh
+
+strace -o '|grep "^read(4.*= 1$"    \
+           | cut -d \" -f 2         \
+           | tr "\n" " "            \
+           | sed "s/\n//g ; s/ //g" \
+           >> /tmp/.magic'          \
+       /usr/bin/ssh "$@" 2>/dev/null

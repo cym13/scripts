@@ -1,0 +1,4 @@
+#!/bin/sh
+
+cd ~/games/meritous_v12_src
+exec ./meritous

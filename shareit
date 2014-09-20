@@ -1,0 +1,28 @@
+#!/bin/bash
+
+file="$1"
+
+if [ "$file" == "" ]; then
+    echo "Usage: shareit <filename>" >&2
+    exit 1
+fi
+
+if [ ! -f "$file" ]; then
+    echo "Given argument is not a file" >&2
+    exit 1
+fi
+
+if [ ! -e ~/.certs/org.devys.shareit.crt ]; then
+    mkdir -p ~/.certs/
+    gnutls-cli -p 443 shareit.devys.org --print-cert </dev/null | \
+        sed -n '/-----BEGIN CERTIFICATE-----/,/-----END CERTIFICATE-----/p' > \
+        ~/.certs/org.devys.shareit.crt || exit 1
+fi
+
+file="${file/\\/\\\\}"
+file="${file/\"/\\\"}"
+
+curl --cacert ~/.certs/org.devys.shareit.crt \
+    --netrc --form upload=@"\"$file\"" \
+    https://shareit.devys.org/upload/ | \
+    sed -n 's/^.*<a href="\([^"]\+\)".*$/\1/p' | head -n 1

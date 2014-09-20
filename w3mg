@@ -1,0 +1,10 @@
+#!/usr/bin/sh
+
+URL="http://duckduckgo.com/"
+
+if [ $# -ne 0 ] ; then
+    URL="$(echo "${URL}?q=$@" | tr ' ' '+')"
+fi
+
+echo "$URL"
+w3m "$URL"

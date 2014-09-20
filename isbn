@@ -1,0 +1,12 @@
+#!/bin/sh
+
+while [ $# -ne 0 ] ; do
+    INFO_URL="$(curl -s "http://www.openisbn.com/isbn/$1" | \
+                tr "'" "\n" | \
+                grep '/download/.*txt')"
+
+    curl -s "http://openisbn.com/${INFO_URL}" | sed -n '/Title:/,/Pages:/p'
+    shift
+
+    if [ $# -ne 0 ] ; then echo ; fi
+done

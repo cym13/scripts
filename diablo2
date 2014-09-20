@@ -1,0 +1,4 @@
+#!/bin/sh
+
+wine "/home/cym13/.wine/drive_c/Program Files (x86)/Diablo II/Game.exe"
+rm ~/BnetLog.txt

@@ -1,0 +1,3 @@
+#!/bin/bash
+
+exec ~/.conky/myconky/myconky.sh &

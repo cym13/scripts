@@ -1,0 +1,4 @@
+#!/bin/sh
+
+exec urxvt -e screen -c /home/cym13/.screenrc -A # -S $(date +%m_%d_%H_%M_%S)
+#exec urxvt -e tmux

@@ -1,0 +1,25 @@
+#!/bin/bash
+
+set -e
+
+if [ -z "$1" ]; then
+    echo "Please supply the base git repository to share."
+    exit 1
+fi
+
+PROJECT="$1"
+PROJECTNAME="$(basename "$1")"
+
+if [ -e "${PROJECTNAME}.git" ]; then
+    echo "${PROJECTNAME}.git already exists, aborting..."
+    exit 1
+fi
+
+git clone --bare "${PROJECT}"
+pushd "${PROJECTNAME}.git"
+git update-server-info
+popd
+cd ${PROJECTNAME}.git
+python -c "import SimpleHTTPServer; SimpleHTTPServer.test()"
+cd ..
+rm -rf "${PROJECTNAME}.git"

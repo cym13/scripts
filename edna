@@ -1,0 +1,4 @@
+#!/usr/bin/sh
+
+cd /home/cym13/usr/apt/edna-0.6/
+exec python edna.py

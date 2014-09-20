@@ -1,0 +1,4 @@
+#!/bin/sh
+
+exec ~/usr/apt/VisualBoyAdvance-1.7.1-SDL-linux-glibc22/VisualBoyAdvance \
+    --config=$HOME/.VisualBoyAdvance.cfg "$@"

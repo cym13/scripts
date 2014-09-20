@@ -1,0 +1,11 @@
+#!/bin/sh
+
+if [ -e "$(which nosetests 2>/dev/null)" ] ; then
+    nosetests && git commit "$@"
+else
+    echo -e "\e[1;31mWARNING\e[0m: No test was done, continue anyway? [N/y]"
+    read answer
+    if [ "$(echo $answer | tr "A-Z" "a-z")" = "y" ] ; then
+        git commit $@
+    fi
+fi

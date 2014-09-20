@@ -1,0 +1,3 @@
+#!/bin/sh
+
+/usr/bin/xlock -fg orange -bg black +echokeys

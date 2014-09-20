@@ -1,0 +1,9 @@
+#!/bin/sh
+
+INSTANCE="$(dwbremote -l)"
+
+if [ "$INSTANCE" == "" ] ; then
+    exec torsocks dwb "$@"
+else
+    dwbremote :tabopen "$@"
+fi

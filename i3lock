@@ -1,0 +1,3 @@
+#!/bin/sh
+
+pkill hhpc ; /usr/bin/i3lock "$@" ; hhpc &

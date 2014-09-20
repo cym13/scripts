@@ -1,0 +1,19 @@
+#!/bin/sh
+
+tmp_file=/tmp/mail-$(apg -c /dev/urandom -m 8 -x 12 -n 1 -a 0 -M NCL)
+
+echo "HELO esme.net
+MAIL FROM: mystiro@gmail.com
+RCPT TO: $@
+DATA
+SUBJECT:
+
+      Cédric Picard
+    mystiro@gmail.com
+." > $tmp_file
+
+vim -c 'set ft=MAIL' -f $tmp_file || ed $tmp_file
+
+cat $tmp_file | nc localhost 25
+
+rm $tmp_file

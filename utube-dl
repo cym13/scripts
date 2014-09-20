@@ -1,0 +1,3 @@
+#!/bin/sh
+
+youtube-dl --max-quality mp4 -o "%(title)s.%(ext)s" "$1"
