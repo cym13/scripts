@@ -1,60 +1,97 @@
-#!/bin/bash
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
-# v - alsa quick volume control
+"""
+Usage: v [-h] [-m] [-u] [-c] [-t] [-i] [-d] [-p] [VOLUME]
+
+Manage your sound cards using ponymix
+
+Arguments:
+  VOLUME    integer number, if used with no option sets the volume to VOLUME
+
+Options:
+  -h    show this help message and exit
+  -i    increase volume by vol
+  -d    decrease volume by vol
+  -m    mute
+  -u    unmute
+  -t    toggle volume
+  -p    restablish previous volume
+  -c    change sound card in use
+"""
+
+import sys
+from sh import ponymix
+from docopt import docopt
 
 
-volume=$( amixer get Master |
-    sed -n '/Mono/s/^[^0-9]\+\([0-9]\+\) .*$/\1/p')
-current_volume=$(cat ~/.current_volume)
+def cycle_card(card=None):
+    # Get the number of available sound cards
+    cards = int([ x.split("\t") for x in ponymix("list", "--short").splitlines()
+                                if  x.startswith("sink") ][-1][1])
+    current = int(default_card())
 
-setMaster () {
-    amixer sset Master "$@" > /dev/null
-}
+    if current < cards:
+        new_card = current+1
+    else:
+        new_card = 0
 
-if [ $volume -ne 0 ] ; then
-    echo $volume > ~/.current_volume
-fi
+    ponymix("-d", new_card, "set-default")
+    return new_card
 
-if [ $# -eq 0 ]; then
-    echo ${volume}
-    exit
-elif [ $1 = '-m' ]; then
-    desired='100-'
-elif [ $1 = '-u' ]; then
-    setMaster '100-'
-    desired="${current_volume}+"
-elif [ $1 = '-t' ]; then
-    if [ $volume -eq 0 ]; then
-        setMaster '100-'
-        desired="${current_volume}+"
-    else
-        desired='100-'
-    fi
-elif [ $1 = '-' ]; then
-    setMaster '100-'
-    desired=$(( volume - $2 ))
-elif [ $1 = '+' ]; then
-    setMaster '100-'
-    desired=$(( volume + $2 ))
-elif [ $1 = '-h' ]; then
-    echo "usage: v [-h] [-m] [-u] [-t] [- vol] [+ vol] [vol]"
-    echo ""
-    echo "Manage alsamixer volume."
-    echo ""
-    echo "positional arguments:"
-    echo "  vol        integer number"
-    echo ""
-    echo "optional arguments:"
-    echo "  -h         show this help message and exit"
-    echo "  +          bring volume up by vol"
-    echo "  -          bring volume down by vol"
-    echo "  -m         mute"
-    echo "  -t         toggle volume"
-    echo "  -u         restablish previous volume"
-    echo "  no arg     set volume to vol"
-    exit
-else
-    desired=$1
-fi
 
-setMaster $desired
+def default_card():
+    return [ x.split("\t") for x in ponymix("defaults", "--short").splitlines()
+                           if  x.startswith("sink") ][0][1]
+
+
+def current_volume():
+    return str(ponymix("get-volume"))
+
+
+def update_volume(vol, *, volume_cache="/tmp/volume_cache"):
+    open(volume_cache, 'w').write(current_volume())
+    return ponymix("set-volume", vol)
+
+
+def previous_volume(*, volume_cache="/tmp/volume_cache"):
+    try:
+        return open(volume_cache, "r").read()
+    except:
+        return current_volume()
+
+
+def main():
+    args = docopt(__doc__)
+
+    if args["-i"]:
+        ponymix("increase", args["VOLUME"])
+
+    elif args["-d"]:
+        print(args["VOLUME"])
+        ponymix("decrease", args["VOLUME"])
+
+    elif args["-m"]:
+        ponymix("mute")
+
+    elif args["-u"]:
+        ponymix("unmute")
+
+    elif args["-t"]:
+        ponymix("toggle")
+
+    elif args["-p"]:
+        update_volume(previous_volume())
+
+    elif args["-c"]:
+        cycle_card()
+
+    elif args["VOLUME"]:
+        update_volume(args["VOLUME"])
+
+    else:
+        print(current_volume())
+
+
+if __name__ == "__main__":
+    main()
