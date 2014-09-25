@@ -90,7 +90,7 @@ def main():
         update_volume(args["VOLUME"])
 
     else:
-        print(current_volume())
+        print(current_volume(), end="")
 
 
 if __name__ == "__main__":
