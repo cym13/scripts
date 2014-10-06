@@ -1,0 +1,29 @@
+#!/bin/sh
+
+RURL="$(echo "${1%%\?*}" | cut -d/ -f4-)"
+URL="http://www.slideshare.net/fullscreen/${RURL}/1"
+IMGS="$(curl -s "$URL" | tr '"' '\n' | grep "image.*1024")"
+BASENAME="${RURL##*/}"
+DEST="${PWD}"
+
+mkdir -p "/tmp/slideshare-dl/$BASENAME"
+pushd "/tmp/slideshare-dl/$BASENAME" > /dev/null
+
+echo -n "Downloading... "
+sort -u <<< "$IMGS" \
+    | sed 's/^\([^?]\+\)?.*/\1/' \
+    | xargs -P4 wget -q -c
+echo Done
+
+ls -1 | while read line ; do
+    mv "$line" "$(echo "$line"|sed 's/-\([0-9]\)-1024/-0\1-1024/')" 2>/dev/null
+done
+
+echo -n "Converting... "
+convert *.jpg "${DEST}/${BASENAME}.pdf"
+echo Done
+
+rm *.jpg
+popd > /dev/null
+rmdir "/tmp/slideshare-dl/$BASENAME"
+rmdir --ignore-fail-on-non-empty "/tmp/slideshare-dl"
