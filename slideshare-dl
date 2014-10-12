@@ -1,7 +1,13 @@
 #!/bin/sh
 
-RURL="$(echo "${1%%\?*}" | cut -d/ -f4-)"
-URL="http://www.slideshare.net/fullscreen/${RURL}/1"
+if [ -z "$(echo "$1" | grep fullscreen)" ] ; then
+    RURL="$(echo "${1%%\?*}" | cut -d/ -f4-)"
+    URL="http://www.slideshare.net/fullscreen/${RURL}/1"
+else
+    RURL="$(echo "$1" | cut -d/ -f5-6)"
+    URL="$1"
+fi
+
 IMGS="$(curl -s "$URL" | tr '"' '\n' | grep "image.*1024")"
 BASENAME="${RURL##*/}"
 DEST="${PWD}"
