@@ -1,15 +1,15 @@
 #!/bin/bash
 
 file="$1"
+tempfile=""
+
+rmtempfile_cb() { rm "$tempfile"; }
 
 if [ "$file" == "" ]; then
-    echo "Usage: shareit <filename>" >&2
-    exit 1
-fi
-
-if [ ! -f "$file" ]; then
-    echo "Given argument is not a file" >&2
-    exit 1
+    tempfile="$(mktemp)"
+    trap rmtempfile_cb EXIT
+    cat > $tempfile
+    file=$tempfile
 fi
 
 if [ ! -e ~/.certs/org.devys.shareit.crt ]; then
