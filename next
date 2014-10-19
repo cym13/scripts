@@ -1,30 +1,28 @@
-#!/usr/bin/env python
-
-import xmmsclient
-class Xmms2():
-    def __init__(self):
-        self._xmms = xmmsclient.XMMS()
-        self._xmms.connect()
-
-    def next(self):
-        result = self._xmms.playlist_current_pos()
-        result.wait()
-        pos = result.value()['position']
-        result = self._xmms.playlist_list_entries()
-        result.wait()
-        length = len(result.value())
-        if pos == (length - 1):
-            self._xmms.playback_stop().wait()
-            self._xmms.playlist_set_next(0).wait()
-        else:
-            self._xmms.playlist_set_next_rel(1)
-            self._xmms.playback_tickle().wait()
-
-xmms2 = Xmms2()
-xmms2.next()
+#!/bin/bash
+exec mpc next
 
 
 # OLD:
-##!/bin/bash
-#exec nyxmms2 next
-
+##!/usr/bin/env python
+#import xmmsclient
+#class Xmms2():
+#    def __init__(self):
+#        self._xmms = xmmsclient.XMMS()
+#        self._xmms.connect()
+#
+#    def next(self):
+#        result = self._xmms.playlist_current_pos()
+#        result.wait()
+#        pos = result.value()['position']
+#        result = self._xmms.playlist_list_entries()
+#        result.wait()
+#        length = len(result.value())
+#        if pos == (length - 1):
+#            self._xmms.playback_stop().wait()
+#            self._xmms.playlist_set_next(0).wait()
+#        else:
+#            self._xmms.playlist_set_next_rel(1)
+#            self._xmms.playback_tickle().wait()
+#
+#xmms2 = Xmms2()
+#xmms2.next()
