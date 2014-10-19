@@ -2,14 +2,15 @@
 set -e
 
 FILE=~/.bookmarks
-BMPORT=8008
 
 if ping -c 1 kitty.local >/dev/null 2>&1 ; then
     HOST=kitty.local
     PORT=22
+    BMPORT=8008
 else
     HOST=0x1707.no-ip.biz
     PORT=443
+    BMPORT=80
 fi
 
 echo " * Importing bookmarks... "
