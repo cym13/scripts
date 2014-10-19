@@ -1,4 +1,7 @@
 #!/bin/sh
 
-poweroff || sudo poweroff
-#exec dbus-send --system --print-reply --dest="org.freedesktop.ConsoleKit" /org/freedesktop/ConsoleKit/Manager org.freedesktop.ConsoleKit.Manager.Stop || gksudo poweroff || sudo poweroff
+if [ -n "$DISPLAY" ] ; then
+    sudo poweroff
+else
+    poweroff
+fi
