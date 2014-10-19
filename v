@@ -26,15 +26,10 @@ from docopt import docopt
 
 
 def cycle_card(card=None):
-    current = int(default_card())
-
     # Get the number of available sound cards
     cards = int([ x.split("\t") for x in ponymix("list", "--short").splitlines()
-                                if  x.startswith("sink\t") ][-1][1])
-
-    # Get the list of processes playing sounds
-    inputs = [ x.split("\t") for x in ponymix("list", "--short").splitlines()
-                             if  x.startswith("sink-input") ]
+                                if  x.startswith("sink") ][-1][1])
+    current = int(default_card())
 
     if current < cards:
         new_card = current+1
@@ -42,10 +37,6 @@ def cycle_card(card=None):
         new_card = 0
 
     ponymix("-d", new_card, "set-default")
-
-    for source in [ x[1] for x in inputs ]:
-        ponymix("-d", source, "move", new_card)
-
     return new_card
 
 
