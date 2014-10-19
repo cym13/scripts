@@ -1,0 +1,62 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+"""
+Simple password dictionnary generator
+
+Usage: brutegen [options] LENGTH
+       brutegen [options] MINLEN MAXLEN
+
+Arguments:
+    LENGTH      exact password length (without suffix or prefix)
+    MINLEN      minimum password length (without suffix or prefix)
+    MAXLEN      maximam password length (without suffix or prefix)
+
+Options:
+    -s, --suffix SUFFIX         set a suffix to the password
+    -p, --prefix PREFIX         set a prefix to the password
+    -c, --charset CHARSET       set of characters composing the password
+"""
+
+import string
+from docopt import docopt
+
+
+def passwords(length, charset):
+    if length == 0:
+        return
+
+    if length == 1:
+        yield from charset
+        return
+
+    lower_len_passwd = passwords(length-1, charset)
+    for passwd in lower_len_passwd:
+        for c in charset:
+            yield passwd + c
+
+
+def main():
+    args = docopt(__doc__)
+
+    if args["LENGTH"]:
+        args["MAXLEN"] = args["LENGTH"]
+        args["MINLEN"] = args["LENGTH"]
+
+    maxlen  = int(args["MAXLEN"])
+    minlen  = int(args["MINLEN"])
+    suffix  = args["--suffix"] or ""
+    prefix  = args["--prefix"] or ""
+    charset = args["--charset"] or string.ascii_letters + string.digits
+
+
+    if maxlen < minlen:
+        maxlen, minlen = minlen, maxlen
+
+    for length in range(minlen, maxlen+1):
+        for each in passwords(length, charset):
+            print(prefix + each + suffix)
+
+
+if __name__ == "__main__":
+    main()
