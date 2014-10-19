@@ -1,0 +1,22 @@
+#!/usr/bin/sh
+set -e
+
+FILE=~/.bookmarks
+
+if ping -c 1 kitty.local >/dev/null 2>&1 ; then
+    HOST=kitty.local
+    PORT=22
+    BMPORT=8008
+else
+    HOST=0x1707.no-ip.biz
+    PORT=443
+    BMPORT=80
+fi
+
+echo " * Importing bookmarks... "
+bm -i "http://${HOST}:${BMPORT}/${USER}/${FILE##*/}"
+echo " * Imported"
+
+echo " * Pushing bookmarks..."
+scp -P "$PORT" "$FILE" "${USER}@${HOST}:${FILE}"
+echo " * Pushed"
