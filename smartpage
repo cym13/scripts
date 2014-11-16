@@ -1,0 +1,16 @@
+#!/bin/sh
+
+REAL_PAGER="less -r"
+FILE="/tmp/.pager"
+WIDTH="$(stty size | cut -d ' ' -f 2)"
+HEIGHT="$(stty size | cut -d ' ' -f 1)"
+
+fold -w "$WIDTH" "$@" > "$FILE"
+chmod 600 "$FILE"
+if [ "$(wc -l "$FILE" | cut -d ' ' -f 1)" -lt "$HEIGHT" ] ; then
+    cat "$FILE"
+else
+    $REAL_PAGER "$FILE"
+fi
+rm "$FILE"
+
